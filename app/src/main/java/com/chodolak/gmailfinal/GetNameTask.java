@@ -108,7 +108,6 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
     private void fetchNameFromProfileServer() throws IOException, JSONException {
         String token = fetchToken();
         if (token == null) {
-            // error has already been handled in fetchToken()
             return;
         }
 
@@ -138,7 +137,11 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
         for(Thread thread : t) {
             String id = thread.getId();
             response = service.users().threads().get("me",id).execute();
-            Log.d("Task",response.getMessages().get(0).getSnippet());
+            for( MessagePartHeader h : response.getMessages().get(0).getPayload().getHeaders()) {
+                if(h.getName().equals("Subject")){
+                    l.add(h.getValue());
+                }
+            }
 
         }
         mActivity.list(l);
