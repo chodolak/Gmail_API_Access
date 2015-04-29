@@ -3,7 +3,6 @@ package com.chodolak.gmailfinal;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.Dialog;
-import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -197,10 +196,10 @@ public class MainActivity extends Activity {
      * Note: This approach is for demo purposes only. Clients would normally not get tokens in the
      * background from a Foreground activity.
      */
-    private AbstractGetNameTask getTask(
+    private GetNameTask getTask(
             MainActivity activity, String email, String scope) {
 
-        return new GetNameInForeground(activity, email, scope);
+        return new GetNameTask(activity, email, scope);
 
     }
 

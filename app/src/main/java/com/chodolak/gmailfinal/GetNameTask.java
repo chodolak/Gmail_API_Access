@@ -3,7 +3,9 @@ package com.chodolak.gmailfinal;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -13,6 +15,7 @@ import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.ListThreadsResponse;
 import com.google.api.services.gmail.model.Message;
+import com.google.api.services.gmail.model.MessagePartHeader;
 import com.google.api.services.gmail.model.Thread;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,7 +48,7 @@ import java.util.List;
  * Display personalized greeting. This class contains boilerplate code to consume the token but
  * isn't integral to getting the tokens.
  */
-public abstract class AbstractGetNameTask extends AsyncTask<Void, Void, Void> {
+public class GetNameTask extends AsyncTask<Void, Void, Void> {
     private static final String TAG = "TokenInfoTask";
     private static final String NAME_KEY = "given_name";
     protected MainActivity mActivity;
@@ -53,7 +56,7 @@ public abstract class AbstractGetNameTask extends AsyncTask<Void, Void, Void> {
     protected String mScope;
     protected String mEmail;
 
-    AbstractGetNameTask(MainActivity activity, String email, String scope) {
+    GetNameTask(MainActivity activity, String email, String scope) {
         this.mActivity = activity;
         this.mScope = scope;
         this.mEmail = email;
@@ -82,7 +85,18 @@ public abstract class AbstractGetNameTask extends AsyncTask<Void, Void, Void> {
      * Get a authentication token if one is not available. If the error is not recoverable then
      * it displays the error message on parent activity.
      */
-    protected abstract String fetchToken() throws IOException;
+    protected String fetchToken() throws IOException {
+        try {
+            return GoogleAuthUtil.getToken(mActivity, mEmail, mScope);
+        } catch (UserRecoverableAuthException userRecoverableException) {
+            // GooglePlayServices.apk is either old, disabled, or not present, which is
+            // recoverable, so we need to show the user some UI through the activity.
+            mActivity.handleException(userRecoverableException);
+        } catch (GoogleAuthException fatalException) {
+            onError("Unrecoverable error " + fatalException.getMessage(), fatalException);
+        }
+        return null;
+    }
 
     /**
      * Contacts the user info server to get the profile of the user and extracts the first name
@@ -105,14 +119,12 @@ public abstract class AbstractGetNameTask extends AsyncTask<Void, Void, Void> {
         Gmail service = new Gmail.Builder(httpTransport, jsonFactory, credential).setApplicationName("GmailApiTP").build();
         ListMessagesResponse messagesRespose;
         ListThreadsResponse threadsResponse;
+        Thread response;
         List<Message> m = null;
         List<Thread> t = null;
-        ArrayList<String> ids = new ArrayList<String>();
-        Message test;
 
-        ids.add("INBOX");
         try {
-            messagesRespose = service.users().messages().list("me").setLabelIds(ids).execute();
+            messagesRespose = service.users().messages().list("me").execute();
             m = messagesRespose.getMessages();
 
             threadsResponse = service.users().threads().list("me").execute();
@@ -120,9 +132,14 @@ public abstract class AbstractGetNameTask extends AsyncTask<Void, Void, Void> {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        List<Message> messages = new ArrayList<Message>();
         ArrayList<String> l = new ArrayList<String>();
-        for (Thread thread : t) {
-            l.add(thread.getSnippet());
+
+        for(Thread thread : t) {
+            String id = thread.getId();
+            response = service.users().threads().get("me",id).execute();
+            Log.d("Task",response.getMessages().get(0).getSnippet());
+
         }
         mActivity.list(l);
 
