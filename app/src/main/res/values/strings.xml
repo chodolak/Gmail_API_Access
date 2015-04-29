@@ -1,0 +1,12 @@
+<resources>
+
+    <string name="app_name">Hello Auth Sample</string>
+    <string name="greet_me">Greet Me</string>
+    <string name="account">Account</string>
+    <string-array name="main_activity_items">
+        <item >Foreground</item>
+        <item >Background</item>
+        <item >Background with Sync</item>
+    </string-array>
+
+</resources>
