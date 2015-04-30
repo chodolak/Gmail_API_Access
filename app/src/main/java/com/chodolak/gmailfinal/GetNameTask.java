@@ -11,10 +11,13 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.repackaged.org.apache.commons.codec.binary.Base64;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.ListThreadsResponse;
 import com.google.api.services.gmail.model.Message;
+import com.google.api.services.gmail.model.MessagePart;
+import com.google.api.services.gmail.model.MessagePartBody;
 import com.google.api.services.gmail.model.MessagePartHeader;
 import com.google.api.services.gmail.model.Thread;
 import org.json.JSONException;
@@ -123,7 +126,12 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
         Thread response;
         List<Message> m = null;
         List<Thread> t = null;
-
+        ArrayList<String> subs = new ArrayList<String>();
+        ArrayList<String> body = new ArrayList<String>();
+        ArrayList<String> l = new ArrayList<String>();
+        StringBuilder builder = new StringBuilder();
+        int testingValue = 0;
+        String testingString = "";
         try {
             threadsResponse = service.users().threads().list("me").execute();
             t = threadsResponse.getThreads();
@@ -131,15 +139,42 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
             e.printStackTrace();
         }
 
-        ArrayList<String> l = new ArrayList<String>();
+
 
         for(Thread thread : t) {
             String id = thread.getId();
             response = service.users().threads().get("me",id).execute();
             List<MessagePartHeader> messageHeader = response.getMessages().get(0).getPayload().getHeaders();
+
+            List<Message> testing = response.getMessages();
+            for(Message test : testing){
+                if(test.getPayload().getMimeType().contains("multipart")){
+                    builder = new StringBuilder();
+                    for(MessagePart part : test.getPayload().getParts()){
+                        if (part.getMimeType().contains("multipart")) {
+                            for (MessagePart part2 : part.getParts()) {
+                                if (part2.getMimeType().equals("text/plain")) {
+                                    builder.append(new String(
+                                            Base64.decodeBase64(part2.getBody().getData())));
+                                }
+                            }
+                        }else if (part.getMimeType().equals("text/plain")) {
+                            builder.append(new String(Base64.decodeBase64(part.getBody().getData())));
+                        }
+                    }
+                }else{
+                    String body2 = new String(Base64.decodeBase64(test.getPayload().getBody().getData()));
+                }
+            }
+            if(testingValue == 0){
+                testingString = builder.toString();
+                testingValue++;
+            }
+
             for( MessagePartHeader h : messageHeader) {
                 if(h.getName().equals("Subject")){
                     l.add(h.getValue());
+                    subs.add(h.getValue());
                     mActivity.list(l);
                     break;
                 }
@@ -149,6 +184,7 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
 
         }
         mActivity.list(l);
+        mActivity.setItemListener(testingString);
         mActivity.hideSpinner();
 
     }

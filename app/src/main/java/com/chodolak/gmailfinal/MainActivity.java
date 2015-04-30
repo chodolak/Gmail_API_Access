@@ -10,11 +10,21 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.app.ListActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.AdapterView.OnItemClickListener;
 
 import com.google.android.gms.auth.GooglePlayServicesAvailabilityException;
 import com.google.android.gms.auth.UserRecoverableAuthException;
@@ -30,8 +40,6 @@ public class MainActivity extends Activity {
 
     private static final String TAG = "PlayHelloActivity";
 
-    private final static String PROFILE_SCOPE
-            = "https://www.googleapis.com/auth/userinfo.profile";
     private final static String GMAIL_SCOPE
             = "https://www.googleapis.com/auth/gmail.readonly";
     private final static String SCOPE
@@ -49,11 +57,6 @@ public class MainActivity extends Activity {
 
     private String mEmail;
 
-    private Type requestType;
-
-    public static String TYPE_KEY = "type_key";
-    public static enum Type {FOREGROUND, BACKGROUND, BACKGROUND_WITH_SYNC}
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +64,7 @@ public class MainActivity extends Activity {
 
         mOut = (TextView) findViewById(R.id.message);
         lView = (ListView) findViewById(R.id.listView);
+
         spinner = (ProgressBar)findViewById(R.id.progressBar);
         spinner.setVisibility(View.GONE);
     }
@@ -177,6 +181,23 @@ public class MainActivity extends Activity {
             @Override
             public void run() {
                 spinner.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    public void setItemListener(final String b){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                lView.setOnItemClickListener(new OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view,
+                                            int position, long id) {
+                        Intent i = new Intent(getApplicationContext(), InfoActivity.class);
+                        i.putExtra("body",b);
+                        startActivity(i);
+                    }
+                });
             }
         });
     }
