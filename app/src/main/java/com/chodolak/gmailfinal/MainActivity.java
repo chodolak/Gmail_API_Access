@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,12 +35,13 @@ public class MainActivity extends Activity {
     private final static String GMAIL_SCOPE
             = "https://www.googleapis.com/auth/gmail.readonly";
     private final static String SCOPE
-            = "oauth2:" + PROFILE_SCOPE + " " + GMAIL_SCOPE;
+            = "oauth2:" +  GMAIL_SCOPE;
 
     public static final String EXTRA_ACCOUNTNAME = "extra_accountname";
 
     private TextView mOut;
     private ListView lView;
+    private ProgressBar spinner;
 
     static final int REQUEST_CODE_PICK_ACCOUNT = 1000;
     static final int REQUEST_CODE_RECOVER_FROM_AUTH_ERROR = 1001;
@@ -59,7 +61,8 @@ public class MainActivity extends Activity {
 
         mOut = (TextView) findViewById(R.id.message);
         lView = (ListView) findViewById(R.id.listView);
-
+        spinner = (ProgressBar)findViewById(R.id.progressBar);
+        spinner.setVisibility(View.GONE);
     }
 
     @Override
@@ -158,9 +161,27 @@ public class MainActivity extends Activity {
                 lView.setAdapter(arrayAdapter);
             }
         });
-
-
     }
+
+    public void showSpinner(){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                spinner.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    public void hideSpinner(){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                spinner.setVisibility(View.GONE);
+            }
+        });
+    }
+
+
 
     /**
      * This method is a hook for background threads and async tasks that need to provide the

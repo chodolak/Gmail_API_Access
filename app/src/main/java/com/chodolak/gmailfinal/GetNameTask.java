@@ -106,6 +106,8 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
      * @throws JSONException if the response from the server could not be parsed.
      */
     private void fetchNameFromProfileServer() throws IOException, JSONException {
+        mActivity.showSpinner();
+        mActivity.show("Getting emails...");
         String token = fetchToken();
         if (token == null) {
             return;
@@ -116,55 +118,39 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
         HttpTransport httpTransport = new NetHttpTransport();
 
         Gmail service = new Gmail.Builder(httpTransport, jsonFactory, credential).setApplicationName("GmailApiTP").build();
-        ListMessagesResponse messagesRespose;
+
         ListThreadsResponse threadsResponse;
         Thread response;
         List<Message> m = null;
         List<Thread> t = null;
 
         try {
-            messagesRespose = service.users().messages().list("me").execute();
-            m = messagesRespose.getMessages();
-
             threadsResponse = service.users().threads().list("me").execute();
             t = threadsResponse.getThreads();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        List<Message> messages = new ArrayList<Message>();
+
         ArrayList<String> l = new ArrayList<String>();
 
         for(Thread thread : t) {
             String id = thread.getId();
             response = service.users().threads().get("me",id).execute();
-            for( MessagePartHeader h : response.getMessages().get(0).getPayload().getHeaders()) {
+            List<MessagePartHeader> messageHeader = response.getMessages().get(0).getPayload().getHeaders();
+            for( MessagePartHeader h : messageHeader) {
                 if(h.getName().equals("Subject")){
                     l.add(h.getValue());
+                    mActivity.list(l);
+                    break;
                 }
             }
 
+
+
         }
         mActivity.list(l);
+        mActivity.hideSpinner();
 
-
-        URL url = new URL("https://www.googleapis.com/oauth2/v1/userinfo?access_token=" + token);
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        int sc = con.getResponseCode();
-        if (sc == 200) {
-            InputStream is = con.getInputStream();
-            String name = getFirstName(readResponse(is));
-            mActivity.show("Hello " + name + "!");
-            is.close();
-            return;
-        } else if (sc == 401) {
-            GoogleAuthUtil.invalidateToken(mActivity, token);
-            onError("Server auth error, please try again.", null);
-            Log.i(TAG, "Server auth error: " + readResponse(con.getErrorStream()));
-            return;
-        } else {
-            onError("Server returned the following error code: " + sc, null);
-            return;
-        }
     }
 
     /**
