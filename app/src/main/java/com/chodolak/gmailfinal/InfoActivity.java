@@ -21,13 +21,15 @@ public class InfoActivity extends Activity {
         setContentView(R.layout.activity_info);
         header = (TextView)findViewById(R.id.header);
         body = (TextView)findViewById(R.id.body);
-        header.setText("This works!");
-        String value = "";
+        String s = "";
+        String b = "";
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-             value = extras.getString("body");
+             b = extras.getString("body");
+             s = extras.getString("subject");
         }
 
-        body.setText(value);
+        body.setText(b);
+        header.setText(s);
     }
 }

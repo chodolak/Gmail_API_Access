@@ -126,12 +126,14 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
         Thread response;
         List<Message> m = null;
         List<Thread> t = null;
+
         ArrayList<String> subs = new ArrayList<String>();
         ArrayList<String> body = new ArrayList<String>();
+
         ArrayList<String> l = new ArrayList<String>();
         StringBuilder builder = new StringBuilder();
-        int testingValue = 0;
-        String testingString = "";
+        String body2 = "";
+
         try {
             threadsResponse = service.users().threads().list("me").execute();
             t = threadsResponse.getThreads();
@@ -162,13 +164,15 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
                             builder.append(new String(Base64.decodeBase64(part.getBody().getData())));
                         }
                     }
+
                 }else{
-                    String body2 = new String(Base64.decodeBase64(test.getPayload().getBody().getData()));
+                    body2 = new String(Base64.decodeBase64(test.getPayload().getBody().getData()));
                 }
             }
-            if(testingValue == 0){
-                testingString = builder.toString();
-                testingValue++;
+            if(!body.toString().isEmpty()){
+                body.add(builder.toString());
+            }else{
+                body.add(body2);
             }
 
             for( MessagePartHeader h : messageHeader) {
@@ -180,11 +184,9 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
                 }
             }
 
-
-
         }
         mActivity.list(l);
-        mActivity.setItemListener(testingString);
+        mActivity.setItemListener(body, subs);
         mActivity.hideSpinner();
 
     }

@@ -185,7 +185,7 @@ public class MainActivity extends Activity {
         });
     }
 
-    public void setItemListener(final String b){
+    public void setItemListener(final ArrayList<String> b, final ArrayList<String> s){
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -194,7 +194,8 @@ public class MainActivity extends Activity {
                     public void onItemClick(AdapterView<?> parent, View view,
                                             int position, long id) {
                         Intent i = new Intent(getApplicationContext(), InfoActivity.class);
-                        i.putExtra("body",b);
+                        i.putExtra("body",b.get(position));
+                        i.putExtra("subject", s.get(position));
                         startActivity(i);
                     }
                 });
