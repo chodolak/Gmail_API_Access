@@ -13,44 +13,24 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.repackaged.org.apache.commons.codec.binary.Base64;
 import com.google.api.services.gmail.Gmail;
-import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.ListThreadsResponse;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePart;
-import com.google.api.services.gmail.model.MessagePartBody;
 import com.google.api.services.gmail.model.MessagePartHeader;
+import com.google.api.services.gmail.model.Profile;
 import com.google.api.services.gmail.model.Thread;
 import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.math.BigInteger;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
+import java.text.ParseException;
 
-/**
+import java.util.Date;
 
- import com.google.android.gms.auth.GoogleAuthUtil;
-
- import android.os.AsyncTask;
- import android.util.Log;
-
- import org.json.JSONException;
- import org.json.JSONObject;
-
- import java.io.ByteArrayOutputStream;
- import java.io.IOException;
- import java.io.InputStream;
- import java.net.HttpURLConnection;
- import java.net.URL;
-
- /**
- * Display personalized greeting. This class contains boilerplate code to consume the token but
- * isn't integral to getting the tokens.
- */
 public class GetNameTask extends AsyncTask<Void, Void, Void> {
     private static final String TAG = "TokenInfoTask";
     private static final String NAME_KEY = "given_name";
@@ -123,10 +103,11 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
         Gmail service = new Gmail.Builder(httpTransport, jsonFactory, credential).setApplicationName("GmailApiTP").build();
 
         ListThreadsResponse threadsResponse;
+        Profile p;
         Thread response;
         List<Message> m = null;
         List<Thread> t = null;
-
+        BigInteger i;
         ArrayList<String> subs = new ArrayList<String>();
         ArrayList<String> body = new ArrayList<String>();
 
@@ -134,14 +115,17 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
         StringBuilder builder = new StringBuilder();
         String body2 = "";
 
+        //Note for later.
+        //p = service.users().getProfile("me").execute();
+        //i = p.getHistoryId();
+        //Log.d("Task", "Test history id: " + i);
+
         try {
             threadsResponse = service.users().threads().list("me").execute();
             t = threadsResponse.getThreads();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
 
         for(Thread thread : t) {
             String id = thread.getId();
@@ -181,35 +165,66 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
                     subs.add(h.getValue());
                     mActivity.list(l);
                     break;
+                }else if(h.getName().equals("Date")){
+                    int emailDate[] = getDate(h.getValue());
+
                 }
             }
 
         }
+
+
         mActivity.list(l);
         mActivity.setItemListener(body, subs);
         mActivity.hideSpinner();
 
     }
 
-    /**
-     * Reads the response from the input stream and returns it as a string.
-     */
-    private static String readResponse(InputStream is) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        byte[] data = new byte[2048];
-        int len = 0;
-        while ((len = is.read(data, 0, data.length)) >= 0) {
-            bos.write(data, 0, len);
+    public int[] getDate(String time){
+        int day[] = {0,0,0};
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
+                "EEE, d MMM yyyy HH:mm:ss Z", Locale.US);
+        Date date = null;
+        try {
+            date = simpleDateFormat.parse(time);
+
+            Calendar fDate = Calendar.getInstance();
+            fDate.setTime(date);
+
+            simpleDateFormat = new SimpleDateFormat("dd");
+            String d =  simpleDateFormat.format(fDate.getTime());
+            day[0] = Integer.parseInt(d);
+
+            simpleDateFormat = new SimpleDateFormat("MM");
+            d =  simpleDateFormat.format(fDate.getTime());
+            day[1] = Integer.parseInt(d);
+
+            simpleDateFormat = new SimpleDateFormat("yyyy");
+            d =  simpleDateFormat.format(fDate.getTime());
+            day[2] = Integer.parseInt(d);
+
+            return day;
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return day;
         }
-        return new String(bos.toByteArray(), "UTF-8");
     }
 
-    /**
-     * Parses the response and returns the first name of the user.
-     * @throws JSONException if the response is not JSON or if first name does not exist in response
-     */
-    private String getFirstName(String jsonResponse) throws JSONException {
-        JSONObject profile = new JSONObject(jsonResponse);
-        return profile.getString(NAME_KEY);
+    public int[] getCurrentDate(){
+        int day[] = {0,0,0};
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd");
+        String dd = sdf.format(c.getTime());
+        day[0] = Integer.parseInt(dd);
+
+        sdf = new SimpleDateFormat("MM");
+        String mm = sdf.format(c.getTime());
+        day[1] = Integer.parseInt(mm);
+
+        sdf = new SimpleDateFormat("yyyy");
+        String yy = sdf.format(c.getTime());
+        day[2] = Integer.parseInt(yy);
+
+        return day;
     }
 }
