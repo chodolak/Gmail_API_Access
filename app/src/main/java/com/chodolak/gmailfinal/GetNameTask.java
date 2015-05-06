@@ -1,5 +1,6 @@
 package com.chodolak.gmailfinal;
 
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -89,6 +90,8 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
      * @throws JSONException if the response from the server could not be parsed.
      */
     private void fetchNameFromProfileServer() throws IOException, JSONException {
+        MySQLiteHelper db = new MySQLiteHelper(mActivity);
+        db.deleteEverything();
         mActivity.showSpinner();
         mActivity.show("Getting emails...");
         String token = fetchToken();
@@ -114,7 +117,9 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
         ArrayList<String> l = new ArrayList<String>();
         StringBuilder builder = new StringBuilder();
         String body2 = "";
-
+        String sub = "";
+        String bod = "";
+        int emailDate[] = {0,0,0};
         //Note for later.
         //p = service.users().getProfile("me").execute();
         //i = p.getHistoryId();
@@ -155,21 +160,24 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
             }
             if(!body.toString().isEmpty()){
                 body.add(builder.toString());
+                bod = builder.toString();
             }else{
                 body.add(body2);
             }
 
             for( MessagePartHeader h : messageHeader) {
                 if(h.getName().equals("Subject")){
+                    sub = h.getValue();
                     l.add(h.getValue());
                     subs.add(h.getValue());
                     mActivity.list(l);
                     break;
                 }else if(h.getName().equals("Date")){
-                    int emailDate[] = getDate(h.getValue());
+                    emailDate = getDate(h.getValue());
 
                 }
             }
+            db.addBook(new Email(sub,"Body","Author",1,1,1,1));
 
         }
 

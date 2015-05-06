@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -14,14 +15,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
-import android.app.ListActivity;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
@@ -45,8 +38,6 @@ public class MainActivity extends Activity {
     private final static String SCOPE
             = "oauth2:" +  GMAIL_SCOPE;
 
-    public static final String EXTRA_ACCOUNTNAME = "extra_accountname";
-
     private TextView mOut;
     private ListView lView;
     private ProgressBar spinner;
@@ -61,12 +52,22 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        MySQLiteHelper db = new MySQLiteHelper(this);
+        ArrayList<String> l = new ArrayList<String>();
+        List<Email> list = db.getAllBooks();
+        for(Email e : list){
+            Log.d("Data2", e.getSubject());
+            l.add(e.getSubject());
+        }
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1, l );
+
 
         mOut = (TextView) findViewById(R.id.message);
         lView = (ListView) findViewById(R.id.listView);
 
         spinner = (ProgressBar)findViewById(R.id.progressBar);
         spinner.setVisibility(View.GONE);
+        lView.setAdapter(arrayAdapter);
     }
 
     @Override
@@ -202,8 +203,6 @@ public class MainActivity extends Activity {
             }
         });
     }
-
-
 
     /**
      * This method is a hook for background threads and async tasks that need to provide the
