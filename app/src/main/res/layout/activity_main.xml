@@ -26,13 +26,6 @@
         android:text="Hello"
         android:onClick="greetTheUser"/>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Database"
-        android:id="@+id/button"
-        android:onClick="checkDatabase"/>
-
     <ProgressBar
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

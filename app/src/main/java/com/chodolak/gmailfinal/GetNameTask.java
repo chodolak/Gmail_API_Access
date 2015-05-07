@@ -104,7 +104,7 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
         HttpTransport httpTransport = new NetHttpTransport();
 
         Gmail service = new Gmail.Builder(httpTransport, jsonFactory, credential).setApplicationName("GmailApiTP").build();
-
+        String author = "";
         ListThreadsResponse threadsResponse;
         Profile p;
         Thread response;
@@ -163,6 +163,7 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
                 bod = builder.toString();
             }else{
                 body.add(body2);
+                bod = body2;
             }
 
             for( MessagePartHeader h : messageHeader) {
@@ -174,10 +175,11 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
                     break;
                 }else if(h.getName().equals("Date")){
                     emailDate = getDate(h.getValue());
-
+                }else if(h.getName().equals("From")){
+                    author = h.getValue();
                 }
             }
-            db.addBook(new Email(sub,"Body","Author",1,1,1,1));
+            db.addBook(new Email(sub,bod,author,emailDate[0],emailDate[1],emailDate[2],1));
 
         }
 
@@ -235,4 +237,6 @@ public class GetNameTask extends AsyncTask<Void, Void, Void> {
 
         return day;
     }
+
+
 }
